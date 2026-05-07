@@ -38,3 +38,47 @@ La aplicacion se abrira por defecto en http://localhost:5173
 - Gestion de Ventas: Carrito de compras con edicion de cantidades y eliminacion de items.
 - Historial de Auditoria: Consulta detallada de ventas pasadas y productos incluidos.
 - Alertas de Stock: Notificaciones visuales basadas en el stock minimo configurado.
+
+## Flujo de Funcionamiento
+
+El siguiente diagrama detalla como interactua el usuario con la interfaz y como esta se comunica con el servidor central:
+
+```mermaid
+flowchart TD
+    subgraph Interfaz_Usuario
+        Login[Pantalla de Login]
+        Dash[Dashboard / Panel Control]
+        Cart[Carrito de Compras]
+        History[Historial de Ventas]
+    end
+
+    subgraph Logica_Frontend
+        Auth[Validacion JWT]
+        Stock[Validacion Stock Local]
+        Search[Filtro Instantaneo]
+    end
+
+    subgraph Comunicacion
+        Axios[Cliente Axios]
+    end
+
+    subgraph Servidor_Backend
+        API[API REST - Node.js]
+        DB[(Base de Datos MySQL)]
+    end
+
+    Login -- Credenciales --> Axios
+    Axios -- Token JWT --> Auth
+    Auth -- Acceso Permitido --> Dash
+    Dash -- Consultar Inventario --> Axios
+    Axios -- GET /productos --> API
+    API -- JSON Data --> Dash
+    Dash -- Buscar --> Search
+    Dash -- Seleccionar --> Cart
+    Cart -- Confirmar Venta --> Axios
+    Axios -- POST /ventas --> API
+    API --> DB
+    Dash -- Auditoria --> History
+    History -- Consultar --> Axios
+    Axios -- GET /ventas --> API
+```
